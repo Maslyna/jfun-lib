@@ -3,6 +3,7 @@ package org.jfun.result;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public record Success<T, ERR>(T value) implements Result<T, ERR> {
 
@@ -54,6 +55,31 @@ public record Success<T, ERR>(T value) implements Result<T, ERR> {
         Objects.requireNonNull(mapper);
         return new Success<>(value);
     }
+
+    @Override
+    public <U> Result<U, ERR> flatMap(Function<? super T, Result<U, ERR>> mapper) {
+        Objects.requireNonNull(mapper);
+        return mapper.apply(value);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <EXX> Result<T, EXX> flatMapError(Function<? super ERR, Result<T, EXX>> mapper) {
+        Objects.requireNonNull(mapper);
+        return (Result<T, EXX>) this;
+    }
+
+    @Override
+    public Result<T, ERR> filter(Predicate<? super T> predicate) {
+        Objects.requireNonNull(predicate);
+        return predicate.test(value) ? this : empty();
+    }
+
+    @Override
+    public Result<T, ERR> filterError(Predicate<ERR> predicate) {
+        return this;
+    }
+
 
     @Override
     public boolean isError() {
